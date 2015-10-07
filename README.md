@@ -2,7 +2,13 @@ This module implements PowerShell cmdlets using the Github public API and abstra
 
 Cmdlets currently available:
 
-    - Connect-Github
-    - Remove-GithubRepository
-    - Get-GithubPublicRepository
-    - New-GithubRepository
+  - Connect-Github
+  - Get-GithubBranch
+  - Get-GithubOrgRepository
+  - Get-GithubOwnRepositories
+  - Get-GithubPublicRepositories
+  - Get-GithubWebhook
+  - List-GithubBranches
+  - New-GithubRepository
+  - New-GithubWebhook
+  - Remove-GithubRepository
