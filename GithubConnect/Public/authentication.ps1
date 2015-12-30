@@ -1,6 +1,6 @@
-﻿Function Connect-Github {
+Function Connect-Github {
     <#
-            .Synopsis
+            .SYNOPSIS
             Connects PowerShell to the Github API
             .DESCRIPTION
             This function will connect the current PowerShell session to the Github API via Basic Authentication. Also supports 2 Factor Authentication via One Time Password.
@@ -8,23 +8,26 @@
             If you don't want to provide the password on the command line, don't provide it and enter it in the prompt.
             .PARAMETER GithubCredentials
             Optional. PSCredential object that holds the User's Github Credentials. If not provided, Function will prompt.
-            .PARAMETER OneTimePassword
-            Optional. If your Github user is enabled for Multi-Factor Authentication (MFA or 2FA) you need to provide an OneTimePassword in order to authenticate.
+            .PARAMETER MFA1TP
+            Optional. If your Github user is enabled for Multi-Factor Authentication (MFA or 2FA) you need to provide an MFA1TP (1 Time Password) in order to authenticate.
             .EXAMPLE
             Connect-Github
             .EXAMPLE
             Connect-Github -GithubCredentials $(Get-Credential)
             .EXAMPLE
-            Connect-Github -OneTimePassword 123456
+            Connect-Github -MFA1TP 123456
             .EXAMPLE
             $creds = Get-Credential
-            Connect-Github -GithubCredentials $creds -OneTimePassword 123456
+            Connect-Github -GithubCredentials $creds -MFA1TP 123456
     #>
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory=$false)]
         [PSCredential]$GithubCredentials,
+        [Parameter(Mandatory=$false,HelpMessage='One Time Password for Multi-Factor Authentication Enabled accounts')]
+        [string]$MFA1TP,
         [Parameter(Mandatory=$false)]
-        [string]$OneTimePassword
+        [String]$PersonalOAuthToken
     )
     
     Begin
@@ -32,9 +35,21 @@
     }
     Process
     {
-        if (-not $GithubCredentials) {
-            $GithubCredentials = (Get-Credential -Message 'Please enter the Github User credentials')
+
+        $githuburi = 'https://api.github.com/user' 
+        if($PersonalOAuthToken) {
+        try {
+                Invoke-RestMethod -Uri $GitHubUri -Headers @{"Authorization"="token $PersonalOAuthToken"} -Method Get -Verbose -ErrorAction Stop
+                $global:GithubPersonalOAuthToken = $PersonalOAuthToken
+            }
+            catch {
+                Write-Error -Message $_
+                  }
         }
+        else {
+            if(-not $GithubCredentials) { 
+                $GithubCredentials = (Get-Credential -Message 'Please enter the Github User credentials') 
+                }
 
         $githubusername = $GithubCredentials.UserName
         $githubpassword = $GithubCredentials.GetNetworkCredential().Password
@@ -43,10 +58,9 @@
         $AuthBytes  = [System.Text.Encoding]::Ascii.GetBytes($AuthString)
         $global:BasicCreds = [Convert]::ToBase64String($AuthBytes)
 
-        $githuburi = 'https://api.github.com/user' 
-        if ($OneTimePassword) {
+        if ($MFA1TP) {
             try {
-                Invoke-WebRequest -Uri $GitHubUri -Headers @{"Authorization"="Basic $BasicCreds"; "X-Github-OTP" = $OneTimePassword} -Verbose -ErrorAction Stop
+                Invoke-WebRequest -Uri $GitHubUri -Headers @{"Authorization"="Basic $BasicCreds"; "X-Github-OTP" = $MFA1TP} -Verbose -ErrorAction Stop
             }
             catch {
                 Write-Error -Message $_
@@ -60,7 +74,9 @@
                 Write-Error -Message $_
             }        
         }
+        }
     }
+
     End
     {
     }

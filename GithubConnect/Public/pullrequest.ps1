@@ -1,6 +1,6 @@
-﻿Function Get-GithubPullRequests {
+Function Get-GithubPullRequests {
     <#
-            .Synopsis
+            .SYNOPSIS
             Gets Pull Requests for a repository
             .DESCRIPTION
             This function will list all Pull Requests for a given Repository. For now only the last 30 Pull Requests will be returned.
@@ -11,15 +11,16 @@
             Mandatory.
             .PARAMETER state
             Optional. Defaults to open. Accepts open and closed.
-            .PARAMETER OneTimePassword
-            Optional. If your Github user is enabled for Multi-Factor Authentication (MFA or 2FA) you need to provide an OneTimePassword in order to authenticate.
+            .PARAMETER MFA1TP
+            Optional. If your Github user is enabled for Multi-Factor Authentication (MFA or 2FA) you need to provide an MFA1TP in order to authenticate.
             .EXAMPLE
             Get-GithubPullRequest -githubuser davidobrien1985 -githubrepository demos
             .EXAMPLE
             Get-GithubPullRequest -githubuser davidobrien1985 -githubrepository demos -state closed
             .EXAMPLE
-            Get-GithubPullRequest -githubuser davidobrien1985 -githubrepository demos -state open -OneTimePassword 123456
+            Get-GithubPullRequest -githubuser davidobrien1985 -githubrepository demos -state open -MFA1TP 123456
     #>
+    [CmdletBinding()]
 param (
         [parameter(mandatory=$true)]
         [string]$githubuser,
@@ -28,34 +29,42 @@ param (
         [parameter(mandatory=$false)]
         [ValidateSet('open','closed')]
         [string]$state='open',
-        [parameter(mandatory=$false)]
-        [string]$OneTimePassword
+        [parameter(mandatory=$false,HelpMessage='One Time Password for Multi-Factor Authentication Enabled accounts')]
+        [string]$MFA1TP
 )
 
     Begin {}
     Process {
-        if (-not ($BasicCreds)) {
+        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 
         $RequestBody = @{'state' = "$state"}
 
-        if ($OneTimePassword) {
+        if ($MFA1TP) {
             try {
-                $json = Invoke-WebRequest -Body $RequestBody -Uri https://api.github.com/repos/$githubuser/$githubrepository/pulls -Method Get -Headers @{"Authorization"="Basic $BasicCreds"; "X-Github-OTP" = $OneTimePassword} -ErrorAction Stop
+                $json = Invoke-WebRequest -Body $RequestBody -Uri https://api.github.com/repos/$githubuser/$githubrepository/pulls -Method Get -Headers @{"Authorization"="Basic $BasicCreds"; "X-Github-OTP" = $MFA1TP} -ErrorAction Stop
             }
             catch {
                 Write-Error -Message $_
             }
         }
-        else {
+        elseif($GithubPersonalOAuthToken) {
+            try {
+                $json = Invoke-WebRequest -Body $RequestBody -Uri https://api.github.com/repos/$githubuser/$githubrepository/pulls -Method Get -Headers @{"Authorization"="token $GithubPersonalOAuthToken"} -ErrorAction Stop
+            }
+            catch {
+                Write-Error -Message $_
+            }        
+        } else {
             try {
                 $json = Invoke-WebRequest -Body $RequestBody -Uri https://api.github.com/repos/$githubuser/$githubrepository/pulls -Method Get -Headers @{"Authorization"="Basic $BasicCreds"} -ErrorAction Stop
             }
             catch {
                 Write-Error -Message $_
-            }        
+            }
         }
+        
         $con_json = ConvertFrom-Json -InputObject $json.Content
               
         [System.Collections.ArrayList]$PRs = @()
