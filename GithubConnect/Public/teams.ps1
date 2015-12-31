@@ -30,7 +30,7 @@ Function Get-GithubTeams {
     
     Begin {}
     Process {
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 
@@ -100,7 +100,7 @@ Function Get-GithubTeamFromId {
     
     Begin {}
     Process {
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 
@@ -172,7 +172,7 @@ Function Get-GithubTeamMembership {
     
     Begin {}
     Process {
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 

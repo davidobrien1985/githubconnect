@@ -30,12 +30,12 @@ Function Get-GithubBranches {
 
     Begin {}
     Process {
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 
         try {
-            $json = Invoke-WebRequest -Uri https://api.github.com/repos/$githubuser/$githubrepository/branches -Method Get -ErrorAction Stop
+            $json = Invoke-WebRequest -Uri https://api.github.com/repos/$githubuser/$githubrepository/branches -Headers @{"Authorization"="token $GithubPersonalOAuthToken"} -Method Get -ErrorAction Stop
         }
         catch {
             Write-Error -Message $_
@@ -94,7 +94,7 @@ Function Get-GithubBranch {
 
     Begin {}
     Process {
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 

@@ -33,7 +33,7 @@ Function Get-GithubWebhook {
 
     Begin {}
     Process {
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 
@@ -108,7 +108,7 @@ Function New-GithubWebhook {
     
     Begin {}
     Process {
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
     

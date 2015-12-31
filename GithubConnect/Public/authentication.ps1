@@ -3,11 +3,13 @@ Function Connect-Github {
             .SYNOPSIS
             Connects PowerShell to the Github API
             .DESCRIPTION
-            This function will connect the current PowerShell session to the Github API via Basic Authentication. Also supports 2 Factor Authentication via One Time Password.
+            This function will connect the current PowerShell session to the Github API via Basic Authentication or Via Personal Oauth Tokens. Also supports 2 Factor Authentication via One Time Password.
             The user name and password have to be provided on the command line as Github is not following RFC standards to the full extent: https://developer.github.com/v3/auth/
             If you don't want to provide the password on the command line, don't provide it and enter it in the prompt.
             .PARAMETER GithubCredentials
             Optional. PSCredential object that holds the User's Github Credentials. If not provided, Function will prompt.
+            .PARAMETER PersonalOAuthToken
+            Optional. String Object for a personal OAuth Token - this is a better practice than passing credentials
             .PARAMETER MFA1TP
             Optional. If your Github user is enabled for Multi-Factor Authentication (MFA or 2FA) you need to provide an MFA1TP (1 Time Password) in order to authenticate.
             .EXAMPLE
@@ -16,6 +18,8 @@ Function Connect-Github {
             Connect-Github -GithubCredentials $(Get-Credential)
             .EXAMPLE
             Connect-Github -MFA1TP 123456
+            .EXAMPLE
+            Connect-Github -PersonalOAuthToken $env:GitHubPersonalOAuthToken
             .EXAMPLE
             $creds = Get-Credential
             Connect-Github -GithubCredentials $creds -MFA1TP 123456
@@ -80,4 +84,22 @@ Function Connect-Github {
     End
     {
     }
+}
+
+Function Disconnect-Github {
+ <#
+            .SYNOPSIS
+            Disconnects PowerShell from the Github API
+            .DESCRIPTION
+            This function will disconnect the current PowerShell session from the Github API via Basic Authentication. Also supports 2 Factor Authentication via One Time Password.
+            The user name and password have to be provided on the command line as Github is not following RFC standards to the full extent: https://developer.github.com/v3/auth/
+            If you don't want to provide the password on the command line, don't provide it and enter it in the prompt.
+            .EXAMPLE
+            Disconnect-Github
+    #>
+    [cmdletbinding()]
+    param()
+
+    if (Test-Path Variable:\GithubPersonalOAuthToken) { Remove-Item Variable:\GithubPersonalOAuthToken -Force}
+    if (Test-Path Variable:\BasicCreds) { Remove-Item Variable:\BasicCreds -Force}
 }

@@ -28,7 +28,7 @@ Function Get-GithubOrgRepository {
     
     Begin {}
     Process {
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 
@@ -100,7 +100,7 @@ Function Get-GithubOwnRepositories {
                 Write-Error -Message $_
             }
         }
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 
@@ -229,7 +229,7 @@ Function Remove-GithubRepository {
 
     Begin {}
     Process {
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 
@@ -305,7 +305,7 @@ Function New-GithubRepository {
     )
 
     Begin { 
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
     }
@@ -321,7 +321,7 @@ Function New-GithubRepository {
     "has_downloads": $repository_has_downloads
 }
 "@
-        if (-not ($GithubPersonalOAuthToken) -or ($BasicCreds)) {
+        if (-not (($GithubPersonalOAuthToken) -or ($BasicCreds))) {
             throw 'Please run Connect-Github first to get an authentication token for Github'
         }
 
