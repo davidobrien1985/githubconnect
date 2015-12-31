@@ -59,13 +59,15 @@ Describe "Tests the module $($script.BaseName) to be be correctly formatted" {
      It 'passes the PSScriptAnalyzer with less than 10 Warnings' {
         (Invoke-ScriptAnalyzer -Path $here -Recurse -Severity Warning).Count | Should BeLessThan 10 
     }
+    Remove-Module $script.BaseName
         }
     }
 
-Describe "Tests the Functions to ensure that they are correctly formatted" {
-$functions = Get-Command -FullyQualifiedModule $module_name 
-    foreach($modulefunction in $functions)
-    {
+
+$functions = Get-Command -Module $module_name 
+foreach($modulefunction in $functions)  {
+Describe "Tests the Function $($modulefunction) to ensure that it is correctly formatted" {
+
 
         Context "Function $($modulefunction.Name)" {
             It "Has show-help comment block" {
