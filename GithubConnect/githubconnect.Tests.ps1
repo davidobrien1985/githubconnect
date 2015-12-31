@@ -39,13 +39,11 @@ Describe "Tests the module framework for $module_name" {
         "$here\$module_name.psd1" | Should Contain "Author = *"
     }
 }
-
-Describe "Tests the modules to be be correctly formatted" {
-
-$scripts = Get-ChildItem "$here\*.psm1" | Where-Object {$_.name -NotMatch "Tests.ps1"}
+$scripts = Get-ChildItem "$here\*.ps1" -recurse | Where-Object {$_.name -NotMatch "Tests.ps1"}
     
-    foreach($script in $scripts)
-    {
+foreach($script in $scripts)    {
+Describe "Tests the module $($script.BaseName) to be be correctly formatted" {
+
     Import-Module $script.FullName
           It "Is valid Powershell (Has no script errors)" {
 
@@ -54,6 +52,13 @@ $scripts = Get-ChildItem "$here\*.psm1" | Where-Object {$_.name -NotMatch "Tests
                 $null = [System.Management.Automation.PSParser]::Tokenize($contents, [ref]$errors)
                 $errors.Count | Should Be 0
             }
+            It 'passes the PSScriptAnalyzer without Errors' {
+        (Invoke-ScriptAnalyzer -Path $here -Recurse -Severity Error).Count | Should Be 0
+    }
+
+     It 'passes the PSScriptAnalyzer with less than 10 Warnings' {
+        (Invoke-ScriptAnalyzer -Path $here -Recurse -Severity Warning).Count | Should BeLessThan 10 
+    }
         }
     }
 
