@@ -43,13 +43,12 @@ Function Get-GithubOrgRepository {
 
         $con_json = ConvertFrom-Json -InputObject $json.Content
 
-        foreach ($obj in $con_json) {
-
-            $orgrepo = New-Object -TypeName PSObject
-            Add-Member -InputObject $orgrepo -MemberType NoteProperty -Name 'Repository Name' -Value $obj.name
-            Add-Member -InputObject $orgrepo -MemberType NoteProperty -Name 'Repository Owner' -Value $obj.owner.login
-            Add-Member -InputObject $orgrepo -MemberType NoteProperty -Name 'Repository Description' -Value $obj.description
-            $orgrepos += $orgrepo
+        foreach ($orgrepo in $con_json) {
+                $defaultProperties = @(‘Name’,’Description’)
+                $defaultDisplayPropertySet = New-Object System.Management.Automation.PSPropertySet(‘DefaultDisplayPropertySet’,[string[]]$defaultProperties)
+                $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]]@($defaultDisplayPropertySet)
+                $orgrepo | Add-Member MemberSet PSStandardMembers $PSStandardMembers
+                $orgrepos += $orgrepo
         }
         $orgrepos      
     }
@@ -123,11 +122,12 @@ Function Get-GithubOwnRepositories {
         [System.Collections.ArrayList]$repos = @()
 
         $con_json = ConvertFrom-Json -InputObject $json.Content
-        foreach ($obj in $con_json) {
-            $repo = New-Object -TypeName PSObject
-            Add-Member -InputObject $repo -MemberType NoteProperty -Name 'Name' -Value $obj.name
-            Add-Member -InputObject $repo -MemberType NoteProperty -Name 'Description' -Value $obj.description
-            $repos += $repo
+        foreach ($repo in $con_json) {
+                $defaultProperties = @(‘Name’,’Description’)
+                $defaultDisplayPropertySet = New-Object System.Management.Automation.PSPropertySet(‘DefaultDisplayPropertySet’,[string[]]$defaultProperties)
+                $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]]@($defaultDisplayPropertySet)
+                $repo | Add-Member MemberSet PSStandardMembers $PSStandardMembers
+                $repos += $repo
         }
         $repos
     }
@@ -179,11 +179,12 @@ Function Get-GithubPublicRepositories {
         [System.Collections.ArrayList]$repos = @()
 
         $con_json = ConvertFrom-Json -InputObject $json.Content
-        foreach ($obj in $con_json) {
-            $repo = New-Object -TypeName PSObject
-            Add-Member -InputObject $repo -MemberType NoteProperty -Name 'Name' -Value $obj.name
-            Add-Member -InputObject $repo -MemberType NoteProperty -Name 'Description' -Value $obj.description
-            $repos += $repo
+        foreach ($repo in $con_json) {
+                $defaultProperties = @(‘Name’,’Description’)
+                $defaultDisplayPropertySet = New-Object System.Management.Automation.PSPropertySet(‘DefaultDisplayPropertySet’,[string[]]$defaultProperties)
+                $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]]@($defaultDisplayPropertySet)
+                $repo | Add-Member MemberSet PSStandardMembers $PSStandardMembers
+                $repos += $repo
         }
         $repos
     }
