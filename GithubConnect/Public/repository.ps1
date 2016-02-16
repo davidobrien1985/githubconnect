@@ -33,7 +33,23 @@ Function Get-GithubOrgRepository {
         }
 
         try {
-            $json = Invoke-WebRequest -Uri https://api.github.com/orgs/$OrganisationName/repos -Method Get -ErrorAction Stop
+        $repos = @()
+            $web = Invoke-WebRequest -Uri https://api.github.com/orgs/$OrganisationName/repos -Method Get -ErrorAction Stop
+            $page1 = Invoke-RestMethod -Uri https://api.github.com/orgs/$OrganisationName/repos -Method Get -ErrorAction Stop
+            $page1 | ForEach-Object { $repos += $_ }
+            if ($web.Headers.Keys.Contains('Link'))
+                {
+                    $LastLink = $web.Headers.Link.Split(',')[1].replace('<','').replace('>','').replace(' ','').replace('rel="last"','').replace(';','')
+                    [int]$last = $($lastlink[($lastlink.ToCharArray().count -1)]).tostring()
+                    $pages = 1..$last
+                    foreach ($page in $pages)
+                        {
+                        Invoke-RestMethod -Uri "https://api.github.com/orgs/$OrganisationName/repos?page=$page" -Method Get -Headers @{"Authorization"="token $GithubPersonalOAuthToken"} | ForEach-Object { $repos += $_ }
+                        }
+                }
+
+
+
         }
         catch {
             Write-Error -Message $_
@@ -41,22 +57,20 @@ Function Get-GithubOrgRepository {
 
         [System.Collections.ArrayList]$orgrepos = @()
 
-        $con_json = ConvertFrom-Json -InputObject $json.Content
-
-        foreach ($orgrepo in $con_json) {
+        
+        foreach ($orgrepo in $repos) {
                 $defaultProperties = @(‘Name’,’Description’)
                 $defaultDisplayPropertySet = New-Object System.Management.Automation.PSPropertySet(‘DefaultDisplayPropertySet’,[string[]]$defaultProperties)
                 $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]]@($defaultDisplayPropertySet)
                 $orgrepo | Add-Member MemberSet PSStandardMembers $PSStandardMembers
                 $orgrepos += $orgrepo
         }
-        $orgrepos      
+        $orgrepos | Sort-Object      
     }
     End {
-        Remove-Variable -Name json -Force
-        Remove-Variable -Name con_json -Force
+        
         Remove-Variable -Name orgrepos -Force
-        Remove-Variable -Name orgrepo -Force
+        
     }
 }
 
@@ -355,3 +369,22 @@ Function New-GithubRepository {
         Remove-Variable -Name newrepo -Force
     }
 }
+
+
+function Set-WatchingAllOrgRepos {
+
+
+
+Get-GithubOrgRepository -OrganisationName $orgname
+
+$repos.Name | foreach {Invoke-RestMethod -Method Put -Uri "https://api.github.com/repos/$orgname/$_/subscription" -Body $param -Headers @{"Authorization"="token $GithubPersonalOAuthToken"} }
+
+
+
+}
+
+
+
+
+
+
