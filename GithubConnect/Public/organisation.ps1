@@ -41,6 +41,7 @@ Function Add-GithubUserToOrganisation {
         }
 
         $body = @{'role'="$role"}
+        $body = $body | ConvertTo-Json
 
         if ($MFA1TP) {
             try {
