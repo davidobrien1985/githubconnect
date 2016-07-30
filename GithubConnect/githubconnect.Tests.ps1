@@ -1,8 +1,8 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $module_name = Split-Path -Leaf $here
 
-Describe "Tests the module framework" {
+Describe "Tests the module framework for $module_name" {
     It "Has a root module file ($module_name.psm1)" {        
             
         "$here\$module_name.psm1" | Should Exist
@@ -17,7 +17,11 @@ Describe "Tests the module framework" {
     }
 
     It 'passes the PSScriptAnalyzer without Errors' {
-        (Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error).Count | Should Be 0
+        (Invoke-ScriptAnalyzer -Path $here -Recurse -Severity Error).Count | Should Be 0
+    }
+
+     It 'passes the PSScriptAnalyzer with less than 10 Warnings' {
+        (Invoke-ScriptAnalyzer -Path $here -Recurse -Severity Warning).Count | Should BeLessThan 10 
     }
 
     It "Has a manifest file ($module_name.psd1)" {
@@ -27,46 +31,67 @@ Describe "Tests the module framework" {
 
     It "Contains a root module path in the manifest" {
             
-        "$here\$module_name.psd1" | Should Contain ".\$module_name.psm1"
+        "$here\$module_name.psd1" | Should Contain "$module_name.psm1"
+    }
+
+    It "Contains all needed properties in the Manifest for PSGallery Uploads" {
+    
+        "$here\$module_name.psd1" | Should Contain "Author = *"
     }
 }
+$scripts = Get-ChildItem "$here\*.ps1" -recurse | Where-Object {$_.name -NotMatch "Tests.ps1"}
+    
+foreach($script in $scripts)    {
+Describe "Tests the module $($script.BaseName) to be be correctly formatted" {
 
-Describe "Tests the module's functions" {
-
-$scripts = Get-ChildItem "$here\public\*.ps1" | Where-Object {$_.name -NotMatch "Tests.ps1"}
-    foreach($script in $scripts)
-    {
-        Context "Function $($script.BaseName)" {
-            It "Has show-help comment block" {
-
-                $script.FullName | should contain '<#'
-                $script.FullName | should contain '#>'
-            }
-
-            It "Has show-help comment block has a synopsis" {
-
-                $script.FullName | should contain '\.SYNOPSIS'
-            }
-
-            It "Has show-help comment block has an example" {
-
-                $script.FullName | should contain '\.EXAMPLE'
-            }
-
-            It "Is an advanced function" {
-
-                $script.FullName | should contain 'function'
-                $script.FullName | should contain 'cmdletbinding'
-                $script.FullName | should contain 'param'
-            }
-
-            It "Is valid Powershell (Has no script errors)" {
+    Import-Module $script.FullName
+          It "Is valid Powershell (Has no script errors)" {
 
                 $contents = Get-Content -Path $script.FullName -ErrorAction Stop
                 $errors = $null
                 $null = [System.Management.Automation.PSParser]::Tokenize($contents, [ref]$errors)
                 $errors.Count | Should Be 0
             }
+            It 'passes the PSScriptAnalyzer without Errors' {
+        (Invoke-ScriptAnalyzer -Path $here -Recurse -Severity Error).Count | Should Be 0
+    }
+
+     It 'passes the PSScriptAnalyzer with less than 10 Warnings' {
+        (Invoke-ScriptAnalyzer -Path $here -Recurse -Severity Warning).Count | Should BeLessThan 10 
+    }
+    Remove-Module $script.BaseName
+        }
+    }
+
+
+$functions = Get-Command -Module $module_name 
+foreach($modulefunction in $functions)  {
+Describe "Tests the Function $($modulefunction) to ensure that it is correctly formatted" {
+
+
+        Context "Function $($modulefunction.Name)" {
+            It "Has show-help comment block" {
+
+                $modulefunction.Definition.Contains('<#') | should be 'True'
+                $modulefunction.Definition.Contains('#>') | should be 'True'
+            }
+
+            It "Has show-help comment block has a.SYNOPSIS" {
+
+                $modulefunction.Definition.Contains('.SYNOPSIS') | should be 'True'
+            }
+
+            It "Has show-help comment block has an example" {
+
+                $modulefunction.Definition.Contains('.EXAMPLE') | should be 'True'
+            }
+
+            It "Is an advanced function" {
+
+                $modulefunction.CmdletBinding | should be 'True'
+                $modulefunction.Definition.Contains('param') | should be 'True'
+            }
+
         }
     }
 }
